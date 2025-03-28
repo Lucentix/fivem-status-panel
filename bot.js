@@ -128,13 +128,11 @@ async function updateStatus() {
             const message = await channel.send({ embeds: [embed], components: [row] });
             messageId = message.id;
 
-            // Save the message ID to the file
             fs.writeFileSync(MESSAGE_ID_FILE, JSON.stringify({ messageId }));
         }
     } catch (error) {
         console.error('Error updating message:', error);
 
-        // If the message ID is invalid, reset it and send a new message
         const message = await channel.send({ embeds: [embed], components: [row] });
         messageId = message.id;
         fs.writeFileSync(MESSAGE_ID_FILE, JSON.stringify({ messageId }));
@@ -144,7 +142,6 @@ async function updateStatus() {
         await updatePlayerHistory(status.playerList);
     }
 
-    // Handle player list embeds
     if (SHOW_PLAYER_LIST) {
         const playerEmbeds = [];
         if (status.playerList.length > 0) {
@@ -166,7 +163,6 @@ async function updateStatus() {
             playerEmbeds.push(noPlayersEmbed);
         }
 
-        // Update or send player list embeds
         for (let i = 0; i < playerEmbeds.length; i++) {
             if (playerMessageIds[i]) {
                 try {
@@ -183,7 +179,6 @@ async function updateStatus() {
             }
         }
 
-        // Remove extra player list messages if the number of embeds decreases
         while (playerMessageIds.length > playerEmbeds.length) {
             const messageIdToDelete = playerMessageIds.pop();
             try {
@@ -194,11 +189,9 @@ async function updateStatus() {
             }
         }
 
-        // Save the player list message IDs to the file
         fs.writeFileSync(PLAYER_MESSAGE_IDS_FILE, JSON.stringify({ playerMessageIds }));
     }
 
-    // Handle status change notifications
     if (lastStatus !== status.status) {
         const adminChannel = await client.channels.fetch(ADMIN_CHANNEL_ID);
         const now = Date.now();
@@ -210,7 +203,6 @@ async function updateStatus() {
             await adminChannel.send('The server is now offline!');
         }
 
-        // Save the new status and timestamp
         lastStatus = status.status;
         fs.writeFileSync(STATUS_FILE, JSON.stringify({ lastStatus, lastChange: now }));
     }
@@ -228,7 +220,7 @@ async function updatePlayerHistory(players) {
         if (playerData.lastSeen) {
             playerData.totalOnlineTime += now - playerData.lastSeen;
         }
-        playerData.lastSeen = now; // Update last seen time
+        playerData.lastSeen = now;
     });
     fs.writeFileSync(PLAYER_HISTORY_FILE, JSON.stringify(playerHistory));
 }
@@ -241,8 +233,8 @@ function getTopPlayers(limit = 5) {
     return sortedPlayers.length > 0 ? sortedPlayers.join('\n') : 'No players have been tracked yet.';
 }
 
-const REFRESH_COOLDOWN = 30 * 1000; // 30 seconds cooldown
-let lastRefreshTime = 0; // Track the last time the refresh button was used
+const REFRESH_COOLDOWN = 30 * 1000;
+let lastRefreshTime = 0;
 
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand() && !interaction.isButton()) return;
@@ -282,7 +274,7 @@ client.on('interactionCreate', async interaction => {
         const playerName = options.getString('player');
         const playerData = playerHistory[playerName];
         if (playerData && playerData.lastSeen) {
-            const lastSeenDate = new Date(playerData.lastSeen).toLocaleString(); // Convert timestamp to a readable date
+            const lastSeenDate = new Date(playerData.lastSeen).toLocaleString();
             await interaction.reply({ content: `${playerName} was last seen online at ${lastSeenDate}.`, ephemeral: true });
         } else {
             await interaction.reply({ content: `${playerName} has not been seen online.`, ephemeral: true });
@@ -300,7 +292,7 @@ client.on('interactionCreate', async interaction => {
             return;
         }
 
-        lastRefreshTime = now; // Update the last refresh time
+        lastRefreshTime = now;
         await interaction.deferReply({ ephemeral: true });
         await updateStatus();
         await interaction.editReply({ content: 'Status refreshed!', ephemeral: true });
@@ -315,7 +307,6 @@ client.on('interactionCreate', async interaction => {
 client.once('ready', async () => {
     console.log(`Logged in as ${client.user.tag}`);
 
-    // Register slash commands
     const rest = new REST({ version: '10' }).setToken(BOT_TOKEN);
     const commands = [
         {
@@ -332,7 +323,7 @@ client.once('ready', async () => {
             options: [
                 {
                     name: 'player',
-                    type: 3, // STRING
+                    type: 3,
                     description: 'The name of the player',
                     required: true,
                 },
