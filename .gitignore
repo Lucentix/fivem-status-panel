@@ -1,4 +1,16 @@
-.env
+# Node modules
 node_modules/
+
+# Environment files
+.env
+/backend/.env
+/frontend/.env
+
+# Build files
+/frontend/build/
+
+# Logs
+*.log
+
 *.json
 !package.json

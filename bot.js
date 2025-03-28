@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, REST, Routes } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, REST, Routes } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
 
@@ -128,11 +128,12 @@ async function updateStatus() {
             const message = await channel.send({ embeds: [embed], components: [row] });
             messageId = message.id;
 
-            fs.writeFileSync(MESSAGE_ID_FILE, JSON.stringify({ messageId }));
+            fs.writeFileSync(MESSAGE_ID_FILE, JON.stringify({ messageId }));
         }
     } catch (error) {
         console.error('Error updating message:', error);
 
+        // If the message ID is invalid, reset it and send a new message
         const message = await channel.send({ embeds: [embed], components: [row] });
         messageId = message.id;
         fs.writeFileSync(MESSAGE_ID_FILE, JSON.stringify({ messageId }));
@@ -169,7 +170,6 @@ async function updateStatus() {
                     const message = await channel.messages.fetch(playerMessageIds[i]);
                     await message.edit({ embeds: [playerEmbeds[i]] });
                 } catch (error) {
-                    console.error('Error updating player list message:', error);
                     const message = await channel.send({ embeds: [playerEmbeds[i]] });
                     playerMessageIds[i] = message.id;
                 }
@@ -184,9 +184,7 @@ async function updateStatus() {
             try {
                 const message = await channel.messages.fetch(messageIdToDelete);
                 await message.delete();
-            } catch (error) {
-                console.error('Error deleting extra player list message:', error);
-            }
+            } catch (error) {}
         }
 
         fs.writeFileSync(PLAYER_MESSAGE_IDS_FILE, JSON.stringify({ playerMessageIds }));
@@ -206,8 +204,6 @@ async function updateStatus() {
         lastStatus = status.status;
         fs.writeFileSync(STATUS_FILE, JSON.stringify({ lastStatus, lastChange: now }));
     }
-
-    console.log(`Updated status: ${status.name} - ${status.status} - ${status.players}`);
 }
 
 async function updatePlayerHistory(players) {
